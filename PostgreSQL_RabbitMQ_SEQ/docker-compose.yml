@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+      
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    dns_search: maf.local
+    hostname: postgres.maf.local
+    domainname: maf.local
+    restart: always
+    networks:
+      maflocal:
+        aliases:
+          - postgres.maf.local
+    #volumes:
+    #  - postgres-data:/var/lib/postgresql/data
+    #  - postgres-config:/etc/postgresql
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    dns_search: maf.local
+    hostname: seq.maf.local
+    domainname: maf.local
+    restart: always
+    networks:
+      maflocal:
+        aliases:
+          - seq.maf.local
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - 5341:5341
+      - 5080:80
+      
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: "rabbitmq"
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - rabbitmq_go_net
+
+#volumes:
+  #postgres-config:
+  #  driver: local
+  #  driver_opts:
+  #    type: none
+  #    o: bind
+  #    device: C:\Docker\PostgreSQL_SEQ\postgres\config
+  #postgres-data:
+  #  driver: local
+  #  driver_opts:
+  #    type: none
+  #    o: bind
+  #    device: C:\Docker\PostgreSQL_SEQ\postgres\data
+  #postgres-log:
+  #  driver: local
+  #  driver_opts:
+  #    type: none
+  #    o: bind
+  #    device: C:\Docker\PostgreSQL_SEQ\log
+  #postgres-certs:
+  #  driver: local
+  #  driver_opts:
+  #    type: none
+  #    o: bind
+  #    device: C:\Docker\PostgreSQL_SEQ\certs
+  #postgres-sslconf:
+  #  driver: local
+  #  driver_opts:
+  #    type: none
+  #    o: bind
+  #    device: C:\Docker\PostgreSQL_SEQ\sslconf
+     
+networks:
+  maflocal:
+    driver: bridge
+  rabbitmq_go_net:
+    driver: bridge
